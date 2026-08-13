@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const HEADERS = {
   'Accept': 'application/vnd.github.v3+json',
@@ -21,7 +21,6 @@ async function fetchText(url) {
   } catch { return null; }
 }
 
-// Check if content is a real agent skill
 function isRealSkill(name, desc, content) {
   if (!content || content.length < 50) return false;
   const c = content.toLowerCase();
@@ -96,36 +95,38 @@ function inferFramework(name, desc, content) {
   return null;
 }
 
-const SEARCH_QUERIES = [
-  'SKILL.md in:path agent',
-  'SKILL.md in:path skill',
-  'SKILL.md in:path claude',
-  'SKILL.md in:path copilot',
-  'SKILL.md in:path prompt',
-  'SKILL.md in:path assistant',
-  'SKILL.md in:path mcp',
-  'SKILL.md in:path tool',
-  'SKILL.md in:path workflow',
-  'SKILL.md in:path code',
-  'SKILL.md in:path data',
-  'SKILL.md in:path research',
-  'SKILL.md in:path write',
-  'SKILL.md in:path design',
-  'SKILL.md in:path translate',
-  'SKILL.md in:path image',
-  'SKILL.md in:path video',
-  'SKILL.md in:path browser',
-  'SKILL.md in:path security',
-  'SKILL.md in:path test',
+// Each batch uses different queries to find new repos
+const BATCHES = [
+  // Batch 1 (already done)
+  ['SKILL.md in:path agent', 'SKILL.md in:path skill', 'SKILL.md in:path claude', 'SKILL.md in:path copilot', 'SKILL.md in:path prompt', 'SKILL.md in:path assistant', 'SKILL.md in:path mcp', 'SKILL.md in:path tool', 'SKILL.md in:path workflow', 'SKILL.md in:path code', 'SKILL.md in:path data', 'SKILL.md in:path research', 'SKILL.md in:path write', 'SKILL.md in:path design', 'SKILL.md in:path translate', 'SKILL.md in:path image', 'SKILL.md in:path video', 'SKILL.md in:path browser', 'SKILL.md in:path security', 'SKILL.md in:path test'],
+  // Batch 2 — new queries
+  ['SKILL.md in:path git', 'SKILL.md in:path dev', 'SKILL.md in:path api', 'SKILL.md in:path bot', 'SKILL.md in:path chat', 'SKILL.md in:path generate', 'SKILL.md in:path convert', 'SKILL.md in:path extract', 'SKILL.md in:path analyze', 'SKILL.md in:path search', 'SKILL.md in:path deploy', 'SKILL.md in:path monitor', 'SKILL.md in:path report', 'SKILL.md in:path query', 'SKILL.md in:path template', 'SKILL.md in:path config', 'SKILL.md in:path format', 'SKILL.md in:path parse', 'SKILL.md in:path validate', 'SKILL.md in:path notify'],
 ];
 
 async function main() {
-  console.log('=== AI Skill Map Scraper v3 ===\n');
-  const allSkills = [];
-  const seen = new Set();
+  // Determine batch number from argument or auto-detect
+  const batchArg = process.argv[2];
+  const batchIndex = batchArg !== undefined ? parseInt(batchArg) : 0;
 
-  for (const query of SEARCH_QUERIES) {
-    if (allSkills.length >= 50) break;
+  // Load existing data
+  let existing = [];
+  if (existsSync('data/scraped-skills.json')) {
+    existing = JSON.parse(readFileSync('data/scraped-skills.json', 'utf-8'));
+  }
+  console.log(`=== AI Skill Map Scraper v3 — Batch ${batchIndex + 1} ===\n`);
+  console.log(`Existing skills: ${existing.length}\n`);
+
+  const allSkills = [...existing];
+  const seen = new Set(existing.map(s => s.id.toLowerCase()));
+
+  const queries = BATCHES[batchIndex] || BATCHES[0];
+  let newCount = 0;
+
+  for (const query of queries) {
+    if (allSkills.length >= 50 && newCount === 0) {
+      // If we already have 50+ and found nothing new this batch, stop
+      break;
+    }
     process.stdout.write(`\n${query}... `);
     const data = await fetchJSON(
       `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=30&sort=stars&order=desc`
@@ -134,7 +135,6 @@ async function main() {
     if (repos.length === 0) { process.stdout.write('0'); continue; }
     process.stdout.write(`${repos.length}`);
 
-    // Fetch SKILL.md content in parallel for all repos
     const results = await Promise.all(repos.map(async (repo) => {
       const key = repo.full_name.toLowerCase();
       if (seen.has(key)) return null;
@@ -167,11 +167,12 @@ async function main() {
 
     const valid = results.filter(Boolean);
     for (const r of valid) allSkills.push(r);
-    process.stdout.write(` → ${valid.length} valid`);
+    newCount += valid.length;
+    process.stdout.write(` → ${valid.length} new`);
     await sleep(300);
   }
 
-  console.log(`\n\n=== Results: ${allSkills.length} real skills found ===`);
+  console.log(`\n\n=== Results: ${allSkills.length} total skills (${newCount} new this batch) ===`);
   mkdirSync('data', { recursive: true });
   writeFileSync('data/scraped-skills.json', JSON.stringify(allSkills, null, 2), 'utf-8');
   console.log('Saved to data/scraped-skills.json');
