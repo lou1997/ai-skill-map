@@ -31,8 +31,6 @@ jobs:
       - run: npm ci
 
       - run: npm run gen:data
-        env:
-          NODE_OPTIONS: --loader ts-node/esm
 
       - run: npm run build
 

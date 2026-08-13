@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "scrape": "node --loader ts-node/esm scripts/scrape-github.ts",
     "scrape:all": "node --loader ts-node/esm scripts/scrape-all.ts",
-    "gen:data": "node --loader ts-node/esm scripts/generate-data.ts"
+    "gen:data": "node scripts/gen-data.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

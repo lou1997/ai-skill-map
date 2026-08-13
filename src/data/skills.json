@@ -71,7 +71,7 @@
   {
     "id": "html-to-video",
     "name": "HTML to Video Pipeline",
-    "description": "HTML 转 MP4 视频，使用 headless browser + ffmpeg，包含各种 gotcha 处理",
+    "description": "HTML 转 MP4 视频，使用 headless browser + ffmpeg",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -188,7 +188,7 @@
   {
     "id": "playwright",
     "name": "Playwright 自动化",
-    "description": "使用 Playwright CLI 进行浏览器自动化：导航、表单填写、截图、数据提取",
+    "description": "使用 Playwright CLI 进行浏览器自动化",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -205,7 +205,7 @@
   {
     "id": "web-perf",
     "name": "Web Performance",
-    "description": "使用 Chrome DevTools MCP 分析 Web 性能，测量 Core Web Vitals",
+    "description": "使用 Chrome DevTools MCP 分析 Web 性能",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -221,7 +221,7 @@
   {
     "id": "docx-official",
     "name": "DOCX 文档处理",
-    "description": "创建、编辑、转换 Word 文档：报告、合同、RFP 等",
+    "description": "创建、编辑、转换 Word 文档",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -237,7 +237,7 @@
   {
     "id": "xlsx-official",
     "name": "XLSX 电子表格",
-    "description": "Excel 工具包：创建、修改、清理、读取 xlsx/xlsm/csv 文件",
+    "description": "Excel 工具包：创建、修改、清理 xlsx/csv 文件",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -253,7 +253,7 @@
   {
     "id": "pdf-official",
     "name": "PDF 文档处理",
-    "description": "创建、转换、填充、读取 PDF 文件：报告、发票、证书",
+    "description": "创建、转换、填充、读取 PDF 文件",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -269,7 +269,7 @@
   {
     "id": "pptx-official",
     "name": "PPTX 演示文稿",
-    "description": "创建和修改 PowerPoint 幻灯片：演讲稿、培训材料、演示",
+    "description": "创建和修改 PowerPoint 幻灯片",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -285,7 +285,7 @@
   {
     "id": "super-research",
     "name": "Super Research",
-    "description": "自主研究技能：实验循环、主题调研、量化分析、基准对比、根因调查",
+    "description": "自主研究技能：实验循环、主题调研、量化分析、基准对比",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -320,7 +320,7 @@
   {
     "id": "crewai",
     "name": "CrewAI",
-    "description": "多 Agent 协作框架，角色定义、任务编排、团队协作",
+    "description": "多 Agent 协作框架，角色定义、任务编排",
     "url": "https://github.com/crewAIInc/crewAI",
     "source": "github",
     "tags": [
@@ -337,7 +337,7 @@
   {
     "id": "autogen",
     "name": "AutoGen",
-    "description": "微软多 Agent 对话框架，支持自定义 Agent 角色和对话流程",
+    "description": "微软多 Agent 对话框架",
     "url": "https://github.com/microsoft/autogen",
     "source": "github",
     "tags": [
@@ -354,7 +354,7 @@
   {
     "id": "mcp-protocol",
     "name": "MCP Protocol",
-    "description": "Model Context Protocol，连接 AI 模型与外部数据源的标准化协议",
+    "description": "Model Context Protocol，连接 AI 模型与外部数据源",
     "url": "https://github.com/modelcontextprotocol",
     "source": "github",
     "tags": [
@@ -387,7 +387,7 @@
   {
     "id": "product-design",
     "name": "Product Design",
-    "description": "产品设计探索：UX 研究、流程审计、视觉创意、设计 QA",
+    "description": "产品设计探索：UX 研究、流程审计、视觉创意",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -404,7 +404,7 @@
   {
     "id": "research-paper-writing",
     "name": "学术论文写作",
-    "description": "撰写、修改学术论文（ML/CV/NLP 风格），包含摘要、引言、方法论等",
+    "description": "撰写、修改学术论文（ML/CV/NLP 风格）",
     "url": "https://github.com/anthropics/claude-code",
     "source": "github",
     "tags": [
@@ -453,7 +453,7 @@
   {
     "id": "wrangler",
     "name": "Wrangler CLI",
-    "description": "Cloudflare Workers CLI，用于部署、开发和管理 Workers",
+    "description": "Cloudflare Workers CLI，用于部署和管理 Workers",
     "url": "https://github.com/cloudflare/workers-sdk",
     "source": "github",
     "tags": [
