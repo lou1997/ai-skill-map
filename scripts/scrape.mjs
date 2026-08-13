@@ -1,49 +1,129 @@
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
-
-const SEARCH_QUERIES = [
-  'topic:agent-tool skill',
-  'agent framework skill repository',
-  'LLM agent skills collection',
-  'awesome agents tools',
-  'agent skill claude copilot',
-  'mcp server tool repository',
-  'autonomous agent tools',
-  'AI coding agent skills',
-  'multimodal agent skills',
-  'agent framework tools github',
-  'code generation agent skill',
-  'AI assistant skills github',
-  'workflow automation agent',
-  'multi-agent system tools',
-  'AI skills collection',
-];
+import { writeFileSync, mkdirSync } from 'node:fs';
 
 const HEADERS = {
   'Accept': 'application/vnd.github.v3+json',
-  'User-Agent': 'ai-skill-map/1.0',
+  'User-Agent': 'ai-skill-map/2.0',
 };
 
-async function searchGitHub(query) {
-  const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=25&sort=stars&order=desc`;
-  console.log(`  Searching: ${query}`);
-  try {
-    const resp = await fetch(url, { headers: HEADERS });
-    if (!resp.ok) {
-      console.warn(`    HTTP ${resp.status}`);
-      return [];
+const SKILL_PATHS = [
+  'SKILL.md',
+  'skill.md',
+  'skills/SKILL.md',
+  'skills/skill.md',
+  'docs/SKILL.md',
+  '.mimocode/skills/SKILL.md',
+];
+
+async function fetchJSON(url) {
+  const resp = await fetch(url, { headers: HEADERS });
+  if (!resp.ok) return null;
+  return resp.json();
+}
+
+async function fetchText(url) {
+  const resp = await fetch(url, { headers: HEADERS });
+  if (!resp.ok) return null;
+  return resp.text();
+}
+
+async function findSkillContent(owner, repo, branch) {
+  for (const path of SKILL_PATHS) {
+    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+    const content = await fetchText(url);
+    if (content) {
+      return { content, path };
     }
-    const data = await resp.json();
-    console.log(`    Found ${data.total_count}`);
-    return data.items || [];
-  } catch (e) {
-    console.error(`    Error: ${e.message}`);
-    return [];
   }
+  return null;
+}
+
+async function searchRepos(query) {
+  const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=30&sort=stars&order=desc`;
+  const data = await fetchJSON(url);
+  return data?.items || [];
+}
+
+async function main() {
+  console.log('=== AI Skill Map Scraper v2 ===\n');
+
+  const SEARCH_QUERIES = [
+    'SKILL.md in:path agent skills',
+    'SKILL.md in:path skill',
+    'topic:agent-tool skill',
+    'agent skill claude',
+    'mcp server tool skill',
+    'awesome agent skills',
+    'AI agent skills repository',
+    'agent framework skill',
+    'AI coding skill',
+    'multi-agent skill',
+  ];
+
+  const allSkills = [];
+  const seen = new Set();
+
+  for (const query of SEARCH_QUERIES) {
+    console.log(`Search: ${query}`);
+    const repos = await searchRepos(query);
+    console.log(`  Found ${repos.length} repos`);
+
+    for (const repo of repos) {
+      const key = repo.full_name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const desc = (repo.description || '').toLowerCase();
+      const topics = repo.topics || [];
+      const isRelevant = desc.includes('agent') || desc.includes('skill') ||
+        desc.includes('ai ') || desc.includes('llm') || desc.includes('mcp') ||
+        desc.includes('automation') || desc.includes('claude') ||
+        topics.some(t => ['agent', 'skill', 'ai', 'llm', 'mcp', 'automation', 'tools'].includes(t));
+
+      if (!isRelevant) continue;
+
+      const branch = repo.default_branch || 'main';
+      const skillFile = await findSkillContent(repo.owner.login, repo.name, branch);
+
+      if (!skillFile) continue;
+
+      const { content, path } = skillFile;
+      const name = repo.name.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+      allSkills.push({
+        id: repo.full_name,
+        name,
+        description: repo.description || name,
+        content,
+        contentPath: path,
+        url: repo.html_url,
+        source: 'github',
+        tags: inferTags(desc, topics, repo.name),
+        framework: inferFramework(repo.name, desc, topics),
+        github: {
+          repo: repo.full_name,
+          stars: repo.stargazers_count,
+          forks: repo.forks_count,
+          language: repo.language || undefined,
+        },
+        createdAt: repo.pushed_at,
+        updatedAt: repo.updated_at,
+      });
+
+      console.log(`  + ${repo.full_name} (${path}, ${repo.stargazers_count}★)`);
+    }
+
+    await sleep(500);
+  }
+
+  console.log(`\nTotal scraped: ${allSkills.length}`);
+  mkdirSync('data', { recursive: true });
+  writeFileSync('data/scraped-skills.json', JSON.stringify(allSkills, null, 2), 'utf-8');
+  console.log('Saved to data/scraped-skills.json');
 }
 
 function inferTags(description, topics, name) {
   const tags = [];
-  const text = `${description || ''} ${topics.join(' ')} ${name || ''}`.toLowerCase();
+  const text = `${description} ${topics.join(' ')} ${name}`.toLowerCase();
 
   if (text.includes('code') || text.includes('program') || text.includes('compile') || text.includes('lint') || text.includes('build')) tags.push('code-generation');
   if (text.includes('review') || text.includes('audit') || text.includes('cr')) tags.push('code-review');
@@ -58,8 +138,7 @@ function inferTags(description, topics, name) {
   if (text.includes('image') || text.includes('draw') || text.includes('illustrat')) tags.push('image-gen');
   if (text.includes('video') || text.includes('movie') || text.includes('film')) tags.push('video-gen');
   if (text.includes('audio') || text.includes('speech') || text.includes('tts') || text.includes('voice')) tags.push('audio-tts');
-  if (text.includes('stt') || text.includes('transcrib') || text.includes('whisper')) tags.push('audio-stt');
-  if (text.includes('translate') || text.includes('translation')) tags.push('translation');
+  if (text.includes('translate')) tags.push('translation');
   if (text.includes('browser') || text.includes('playwright') || text.includes('puppeteer') || text.includes('selenium')) tags.push('browser-auto');
   if (text.includes('plan') || text.includes('workflow') || text.includes('orchestrat')) tags.push('planning');
   if (text.includes('memory') || text.includes('context') || text.includes('recall')) tags.push('memory-mgmt');
@@ -75,11 +154,8 @@ function inferTags(description, topics, name) {
   if (text.includes('infra') || text.includes('cloud') || text.includes('serverless')) tags.push('infra');
   if (text.includes('finance') || text.includes('trading') || text.includes('stock') || text.includes('fintech')) tags.push('finance');
   if (text.includes('legal') || text.includes('law') || text.includes('contract') || text.includes('compliance')) tags.push('legal');
-  if (text.includes('medical') || text.includes('health') || text.includes('clinical')) tags.push('medical');
   if (text.includes('educat') || text.includes('teach') || text.includes('learn')) tags.push('education');
   if (text.includes('market') || text.includes('advertis') || text.includes('seo') || text.includes('social')) tags.push('marketing');
-  if (text.includes('hr') || text.includes('human resource') || text.includes('recruit')) tags.push('hr');
-  if (text.includes('ecommerce') || text.includes('shop') || text.includes('retail')) tags.push('e-commerce');
   if (text.includes('langchain') || text.includes('lang graph')) tags.push('langchain');
   if (text.includes('crewai') || text.includes('crew ai')) tags.push('crewai');
   if (text.includes('autogen') || text.includes('auto gen')) tags.push('autogen');
@@ -91,13 +167,12 @@ function inferTags(description, topics, name) {
   if (text.includes('cursor')) tags.push('cursor');
   if (text.includes('copilot')) tags.push('copilot');
   if (text.includes('agent') || text.includes('autonomous') || text.includes('bot')) tags.push('autonomy');
-  if (text.includes('mcp')) tags.push('mcp');
 
   return [...new Set(tags)];
 }
 
 function inferFramework(name, description, topics) {
-  const text = `${name} ${description || ''} ${topics.join(' ')}`.toLowerCase();
+  const text = `${name} ${description} ${topics.join(' ')}`.toLowerCase();
   if (text.includes('langchain') || text.includes('langgraph')) return 'LangChain';
   if (text.includes('crewai') || text.includes('crew ai')) return 'CrewAI';
   if (text.includes('autogen')) return 'AutoGen';
@@ -108,69 +183,11 @@ function inferFramework(name, description, topics) {
   if (text.includes('mcp')) return 'MCP';
   if (text.includes('cursor')) return 'Cursor';
   if (text.includes('copilot')) return 'GitHub Copilot';
-  if (text.includes('browser') || text.includes('playwright') || text.includes('puppeteer')) return 'Browser';
   return null;
 }
 
-async function sleep(ms) {
+function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
-}
-
-async function main() {
-  console.log('=== AI Skill Map Scraper ===\n');
-  const seen = new Set();
-  const allSkills = [];
-
-  for (const query of SEARCH_QUERIES) {
-    const repos = await searchGitHub(query);
-    for (const repo of repos) {
-      const key = repo.full_name.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      const desc = repo.description || '';
-      const topics = repo.topics || [];
-      const name = repo.name || '';
-      const isRelevant = desc.toLowerCase().includes('agent') ||
-        desc.toLowerCase().includes('skill') ||
-        desc.toLowerCase().includes('ai ') ||
-        desc.toLowerCase().includes(' llm') ||
-        desc.toLowerCase().includes('llm') ||
-        desc.toLowerCase().includes('copilot') ||
-        desc.toLowerCase().includes('mcp') ||
-        desc.toLowerCase().includes('automation') ||
-        topics.some(t => ['agent', 'skill', 'ai', 'llm', 'automation', 'tools', 'mcp'].includes(t.toLowerCase()));
-
-      if (!isRelevant) continue;
-
-      const tags = inferTags(desc, topics, name);
-      if (tags.length === 0) continue;
-
-      allSkills.push({
-        id: repo.full_name,
-        name: repo.name || repo.full_name.split('/')[1],
-        description: desc || repo.full_name,
-        url: repo.html_url,
-        source: 'github',
-        tags,
-        framework: inferFramework(name, desc, topics),
-        github: {
-          repo: repo.full_name,
-          stars: repo.stargazers_count,
-          forks: repo.forks_count,
-          language: repo.language || undefined,
-        },
-        createdAt: repo.pushed_at,
-        updatedAt: repo.updated_at,
-      });
-    }
-    await sleep(500);
-  }
-
-  console.log(`\nTotal scraped: ${allSkills.length}`);
-  mkdirSync('data', { recursive: true });
-  writeFileSync('data/scraped-skills.json', JSON.stringify(allSkills, null, 2), 'utf-8');
-  console.log('Saved to data/scraped-skills.json');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
