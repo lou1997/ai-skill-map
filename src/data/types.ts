@@ -10,6 +10,8 @@ export interface Skill {
   name: string;
   description: string;
   longDescription?: string;
+  content?: string;
+  contentPath?: string;
   url: string;
   source: string;
   tags: string[];
