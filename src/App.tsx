@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import skillsData from './data/skills.json';
 import { seedSkills } from './data/seed';
 import { skillCategories, getTagById, getTagsByCategory } from './data/tags';
 import type { Skill } from './data/types';
@@ -10,7 +9,7 @@ import SkillGrid from './components/SkillGrid';
 import SkillMap from './components/SkillMap';
 import Footer from './components/Footer';
 
-const allSkills: Skill[] = [...seedSkills, ...skillsData];
+const allSkills: Skill[] = seedSkills;
 
 export default function App() {
   const [search, setSearch] = useState('');
