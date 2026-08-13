@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-import { seedSkills } from './data/seed';
+import { useState, useMemo, useEffect } from 'react';
 import { skillCategories, getTagById, getTagsByCategory } from './data/tags';
 import type { Skill } from './data/types';
 import Header from './components/Header';
@@ -7,18 +6,33 @@ import SearchBar from './components/SearchBar';
 import TagFilter from './components/TagFilter';
 import SkillGrid from './components/SkillGrid';
 import SkillMap from './components/SkillMap';
+import SkillDetail from './components/SkillDetail';
 import Footer from './components/Footer';
 
-const allSkills: Skill[] = seedSkills;
+async function loadSkills(): Promise<Skill[]> {
+  try {
+    const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const resp = await fetch(`${basePath}/data/skills.json`);
+    return resp.json();
+  } catch {
+    return [];
+  }
+}
 
 export default function App() {
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [search, setSearch] = useState('');
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+
+  useEffect(() => {
+    loadSkills().then(setSkills);
+  }, []);
 
   const filteredSkills = useMemo(() => {
-    let results = allSkills;
+    let results = skills;
 
     if (activeCategory !== 'all') {
       const cat = skillCategories.find(c => c.id === activeCategory);
@@ -42,7 +56,7 @@ export default function App() {
     }
 
     return results;
-  }, [search, activeTags, activeCategory]);
+  }, [skills, search, activeTags, activeCategory]);
 
   const toggleTag = (tagId: string) => {
     setActiveTags(prev =>
@@ -51,10 +65,21 @@ export default function App() {
   };
 
   const stats = useMemo(() => {
-    const frameworks = new Set(allSkills.map(s => s.framework).filter(Boolean));
+    const frameworks = new Set(skills.map(s => s.framework).filter(Boolean));
     const domains = getTagsByCategory('domain').length;
-    return { total: allSkills.length, filtered: filteredSkills.length, frameworks: frameworks.size, domains };
-  }, [filteredSkills]);
+    return { total: skills.length, filtered: filteredSkills.length, frameworks: frameworks.size, domains };
+  }, [skills, filteredSkills]);
+
+  if (skills.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -74,10 +99,10 @@ export default function App() {
               }`}
             >
               <span>全部</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/50">{allSkills.length}</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/50">{skills.length}</span>
             </button>
             {skillCategories.map(cat => {
-              const count = allSkills.filter(s => s.tags.some(t => cat.tags.includes(t))).length;
+              const count = skills.filter(s => s.tags.some(t => cat.tags.includes(t))).length;
               return (
                 <button
                   key={cat.id}
@@ -120,14 +145,17 @@ export default function App() {
               <p className="text-slate-500 mt-2 text-sm">试试调整搜索条件或标签筛选</p>
             </div>
           ) : viewMode === 'map' ? (
-            <SkillMap skills={filteredSkills} />
+            <SkillMap skills={filteredSkills} onSkillClick={setSelectedSkill} />
           ) : (
-            <SkillGrid skills={filteredSkills} />
+            <SkillGrid skills={filteredSkills} onSkillClick={setSelectedSkill} />
           )}
         </div>
       </main>
 
       <Footer />
+      {selectedSkill && (
+        <SkillDetail skill={selectedSkill} onClose={() => setSelectedSkill(null)} />
+      )}
     </div>
   );
 }

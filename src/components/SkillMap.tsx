@@ -4,33 +4,23 @@ import { getTagById } from '../data/tags';
 
 interface Props {
   skills: Skill[];
+  onSkillClick: (skill: Skill) => void;
 }
 
-export default function SkillMap({ skills }: Props) {
+export default function SkillMap({ skills, onSkillClick }: Props) {
   const nodes = useMemo(() => {
-    const tagPositions: Record<string, { x: number; y: number }> = {};
-    const categories = ['coding', 'research', 'creative', 'automation'];
-    const cx = 400, cy = 300, r = 220;
-
-    categories.forEach((cat, ci) => {
-      const angle = (ci / categories.length) * Math.PI * 2 - Math.PI / 2;
-      tagPositions[cat] = {
-        x: cx + Math.cos(angle) * r,
-        y: cy + Math.sin(angle) * r,
-      };
-    });
-
-    return skills.map(skill => {
+    const shown = skills.slice(0, 150);
+    return shown.map(skill => {
       const mainTag = skill.tags[0];
       const tag = getTagById(mainTag);
       const color = tag?.color || '#64748b';
-
+      const stars = skill.github?.stars || 0;
       return {
         skill,
-        x: 100 + Math.random() * 600,
-        y: 80 + Math.random() * 440,
+        x: 100 + (Math.abs(hashStr(skill.id) % 600)),
+        y: 80 + (Math.abs(hashStr(skill.id + 'y') % 440)),
         color,
-        radius: Math.max(8, Math.min(24, (skill.github?.stars || 0) / 50 + 8)),
+        radius: Math.max(6, Math.min(20, Math.log10(stars + 1) * 5 + 4)),
       };
     });
   }, [skills]);
@@ -39,7 +29,10 @@ export default function SkillMap({ skills }: Props) {
     <div className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-6 overflow-hidden">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-slate-300">Skills 分布地图</h2>
-        <span className="text-xs text-slate-500">{skills.length} 个技能</span>
+        <div className="flex items-center gap-3 text-xs text-slate-500">
+          {skills.length > 150 && <span>显示 {nodes.length}/{skills.length} 个</span>}
+          <span>{skills.length} 个技能</span>
+        </div>
       </div>
       <svg
         viewBox="0 0 800 600"
@@ -55,14 +48,18 @@ export default function SkillMap({ skills }: Props) {
 
         <circle cx="400" cy="300" r="250" fill="url(#glow)" />
 
-        {nodes.map((node, i) => (
-          <g key={node.skill.id} className="cursor-pointer">
+        {nodes.map((node) => (
+          <g
+            key={node.skill.id}
+            className="cursor-pointer"
+            onClick={() => onSkillClick(node.skill)}
+          >
             <circle
               cx={node.x}
               cy={node.y}
               r={node.radius * 1.5}
               fill={node.color}
-              fillOpacity="0.1"
+              fillOpacity="0.08"
               className="transition-all duration-300 hover:fill-opacity-20"
             />
             <circle
@@ -70,12 +67,11 @@ export default function SkillMap({ skills }: Props) {
               cy={node.y}
               r={node.radius}
               fill={node.color}
-              fillOpacity="0.7"
+              fillOpacity="0.6"
               stroke={node.color}
-              strokeOpacity="0.9"
+              strokeOpacity="0.8"
               strokeWidth="1"
               className="transition-all duration-300 hover:fill-opacity-100"
-              style={{ animationDelay: `${i * 50}ms` }}
             />
           </g>
         ))}
@@ -86,4 +82,12 @@ export default function SkillMap({ skills }: Props) {
       </svg>
     </div>
   );
+}
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff;
+  }
+  return h;
 }

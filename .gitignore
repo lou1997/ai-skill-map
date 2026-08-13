@@ -1,5 +1,7 @@
 node_modules
 dist
 data/scraped-skills.json
+public/data
+src/data/skills.json
 .env
 *.log
