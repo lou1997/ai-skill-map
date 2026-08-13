@@ -66,29 +66,34 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setActiveCategory('all')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              onClick={() => { setActiveCategory('all'); setActiveTags([]); }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                 activeCategory === 'all'
                   ? 'bg-primary-500/20 text-primary-400 border border-primary-500/40'
                   : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-transparent'
               }`}
             >
-              全部
+              <span>全部</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/50">{allSkills.length}</span>
             </button>
-            {skillCategories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  activeCategory === cat.id
-                    ? 'bg-primary-500/20 text-primary-400 border border-primary-500/40'
-                    : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-transparent'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                <span>{cat.name}</span>
-              </button>
-            ))}
+            {skillCategories.map(cat => {
+              const count = allSkills.filter(s => s.tags.some(t => cat.tags.includes(t))).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setActiveTags([]); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    activeCategory === cat.id
+                      ? 'bg-primary-500/20 text-primary-400 border border-primary-500/40'
+                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 border border-transparent'
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.name}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/50">{count}</span>
+                </button>
+              );
+            })}
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setViewMode('grid')}

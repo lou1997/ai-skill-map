@@ -9,7 +9,8 @@
       "research",
       "data-analysis",
       "autonomy",
-      "planning"
+      "planning",
+      "anthropic"
     ],
     "framework": "Claude Code",
     "github": {
@@ -25,7 +26,8 @@
     "tags": [
       "code-generation",
       "doc-writing",
-      "autonomy"
+      "autonomy",
+      "anthropic"
     ],
     "framework": "Claude Code",
     "github": {
@@ -43,6 +45,7 @@
       "code-review",
       "devops",
       "api-integration",
+      "infra",
       "cloudflare"
     ],
     "framework": "Cloudflare",
@@ -61,6 +64,7 @@
       "autonomy",
       "planning",
       "api-integration",
+      "ml-ai",
       "cloudflare"
     ],
     "framework": "Cloudflare",
@@ -78,7 +82,8 @@
       "video-gen",
       "autonomy",
       "browser-auto",
-      "code-generation"
+      "code-generation",
+      "web-dev"
     ],
     "framework": "Claude Code",
     "github": {
@@ -126,8 +131,7 @@
     "tags": [
       "code-generation",
       "code-review",
-      "web-dev",
-      "image-gen"
+      "web-dev"
     ],
     "framework": "Claude Code",
     "github": {
@@ -161,7 +165,8 @@
       "data-analysis",
       "data-viz",
       "doc-writing",
-      "research"
+      "research",
+      "finance"
     ],
     "framework": "Claude Code",
     "github": {
@@ -177,8 +182,7 @@
     "tags": [
       "code-generation",
       "code-review",
-      "backend-dev",
-      "devops"
+      "backend-dev"
     ],
     "framework": "Claude Code",
     "github": {
@@ -195,7 +199,8 @@
       "browser-auto",
       "autonomy",
       "code-generation",
-      "web-scrape"
+      "web-scrape",
+      "web-dev"
     ],
     "framework": "Claude Code",
     "github": {
@@ -275,7 +280,8 @@
     "tags": [
       "doc-writing",
       "image-gen",
-      "code-generation"
+      "code-generation",
+      "marketing"
     ],
     "framework": "Claude Code",
     "github": {
@@ -410,7 +416,8 @@
     "tags": [
       "doc-writing",
       "research",
-      "code-generation"
+      "code-generation",
+      "education"
     ],
     "framework": "Claude Code",
     "github": {
@@ -443,6 +450,7 @@
       "api-integration",
       "code-generation",
       "devops",
+      "infra",
       "cloudflare"
     ],
     "framework": "Cloudflare",
@@ -460,6 +468,7 @@
       "devops",
       "code-generation",
       "code-review",
+      "infra",
       "cloudflare"
     ],
     "framework": "Cloudflare",
@@ -477,11 +486,62 @@
       "code-generation",
       "security",
       "api-integration",
+      "infra",
       "cloudflare"
     ],
     "framework": "Cloudflare",
     "github": {
       "repo": "cloudflare/sandbox"
+    }
+  },
+  {
+    "id": "legal-review",
+    "name": "Legal Document Review",
+    "description": "法律文档审阅与合规检查，支持合同分析和风险识别",
+    "url": "https://github.com/anthropics/claude-code",
+    "source": "github",
+    "tags": [
+      "doc-review",
+      "code-review",
+      "autonomy",
+      "legal"
+    ],
+    "framework": "Claude Code",
+    "github": {
+      "repo": "anthropics/claude-code"
+    }
+  },
+  {
+    "id": "react-native-dev",
+    "name": "React Native 开发",
+    "description": "移动端 React Native 应用开发，支持 iOS 和 Android",
+    "url": "https://github.com/facebook/react-native",
+    "source": "github",
+    "tags": [
+      "code-generation",
+      "code-review",
+      "mobile-dev"
+    ],
+    "framework": "React Native",
+    "github": {
+      "repo": "facebook/react-native"
+    }
+  },
+  {
+    "id": "mlops",
+    "name": "MLOps 工作流",
+    "description": "机器学习模型部署、监控和管理工作流自动化",
+    "url": "https://github.com/mlflow/mlflow",
+    "source": "github",
+    "tags": [
+      "devops",
+      "ml-ai",
+      "autonomy",
+      "api-integration"
+    ],
+    "framework": "MLflow",
+    "github": {
+      "repo": "mlflow/mlflow"
     }
   }
 ]
