@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { skillCategories, getTagById, getTagsByCategory } from './data/tags';
 import type { Skill } from './data/types';
 import Header from './components/Header';
@@ -19,6 +19,21 @@ async function loadSkills(): Promise<Skill[]> {
   }
 }
 
+function safeFileName(id: string) {
+  return id.replace(/[^a-z0-9._-]/g, '_').toLowerCase();
+}
+
+async function loadSkillContent(skillId: string): Promise<string | null> {
+  try {
+    const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const resp = await fetch(`${basePath}/data/content/${safeFileName(skillId)}.json`);
+    if (!resp.ok) return null;
+    return resp.text();
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [search, setSearch] = useState('');
@@ -28,7 +43,25 @@ export default function App() {
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 
   useEffect(() => {
-    loadSkills().then(setSkills);
+    loadSkills().then(skills => {
+      setSkills(skills);
+      const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+      for (const skill of skills) {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = `${basePath}/data/content/${safeFileName(skill.id || '')}.json`;
+        document.head.appendChild(link);
+      }
+    });
+  }, []);
+
+  const selectSkill = useCallback((skill: Skill) => {
+    setSelectedSkill(skill);
+    loadSkillContent(skill.id || '').then(content => {
+      if (content !== null) {
+        setSelectedSkill(prev => prev && prev.id === skill.id ? { ...prev, content } : prev);
+      }
+    });
   }, []);
 
   const filteredSkills = useMemo(() => {
@@ -145,9 +178,9 @@ export default function App() {
               <p className="text-slate-500 mt-2 text-sm">试试调整搜索条件或标签筛选</p>
             </div>
           ) : viewMode === 'map' ? (
-            <SkillMap skills={filteredSkills} onSkillClick={setSelectedSkill} />
+            <SkillMap skills={filteredSkills} onSkillClick={selectSkill} />
           ) : (
-            <SkillGrid skills={filteredSkills} onSkillClick={setSelectedSkill} />
+            <SkillGrid skills={filteredSkills} onSkillClick={selectSkill} />
           )}
         </div>
       </main>

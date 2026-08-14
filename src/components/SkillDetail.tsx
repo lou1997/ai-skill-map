@@ -85,13 +85,13 @@ export default function SkillDetail({ skill, onClose }: Props) {
             )}
           </div>
 
-          {skill.content && (
-            <div
-              ref={contentRef}
-              className="prose prose-invert prose-sm max-w-none bg-slate-900/30 rounded-xl p-4 border border-slate-700/30 overflow-x-auto"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(skill.content) }}
-            />
-          )}
+          {skill.content ? (
+              <div
+                ref={contentRef}
+                className="prose prose-invert prose-sm max-w-none bg-slate-900/30 rounded-xl p-4 border border-slate-700/30 overflow-x-auto"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(skill.content) }}
+              />
+            ) : null}
 
           <TagSection title="能力" tags={capabilityTags} />
           {domainTags.length > 0 && <TagSection title="领域" tags={domainTags} />}

@@ -6,6 +6,10 @@ function contentHash(skill) {
   return createHash('sha256').update(content.substring(0, 2000)).digest('hex').substring(0, 16);
 }
 
+function safeFileName(id) {
+  return id.replace(/[^a-z0-9._-]/g, '_').toLowerCase();
+}
+
 function main() {
   const skills = [];
   const seenById = new Set();
@@ -26,11 +30,21 @@ function main() {
 
   skills.sort((a, b) => (b.github?.stars || 0) - (a.github?.stars || 0));
 
-  mkdirSync('public/data', { recursive: true });
-  writeFileSync('public/data/skills.json', JSON.stringify(skills, null, 2), 'utf-8');
-  writeFileSync('src/data/skills.json', JSON.stringify(skills, null, 2), 'utf-8');
+  const outDir = 'public/data';
+  const contentDir = `${outDir}/content`;
+  mkdirSync(contentDir, { recursive: true });
 
-  console.log(`Generated ${skills.length} skills`);
+  for (const skill of skills) {
+    const { content, ...meta } = skill;
+    const fileName = safeFileName(skill.id || '');
+    writeFileSync(`${contentDir}/${fileName}.json`, JSON.stringify(content || '', 'utf-8'));
+  }
+
+  const metaSkills = skills.map(({ content, ...rest }) => rest);
+  writeFileSync(`${outDir}/skills.json`, JSON.stringify(metaSkills, null, 2), 'utf-8');
+
+  console.log(`Generated ${skills.length} skills (metadata only)`);
+  console.log(`Content files: ${skills.length}`);
 }
 
 main();
