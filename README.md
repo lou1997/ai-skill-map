@@ -1,3 +1,4 @@
+https://lou1997.github.io/ai-skill-map/
 # AI Skill Map
 
 全网 Agent Skills 分类导航。自动搜集 GitHub 上的 Agent Skills，按多维度标签分类整理，提供交互式浏览和搜索。
